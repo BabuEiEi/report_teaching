@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบรายงานการสอนออนไลน์</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --sidebar-width: 280px;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --gradient-primary: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            --gradient-secondary: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            --gradient-success: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            --gradient-warning: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #login-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" opacity="0.05"><path d="M0,500c0-276.1,223.9-500,500-500s500,223.9,500,500" fill="none" stroke="white" stroke-width="2"/></svg>') center/cover;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+            border: none;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient-primary);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            box-shadow: 5px 0 25px rgba(67, 97, 238, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header h5 {
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header small {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+        }
+
+        .sidebar-menu {
+            padding: 20px 15px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .menu-item:hover::before {
+            left: 100%;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .menu-item.text-danger {
+            color: #ff6b6b !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
+            padding-top: 20px;
+        }
+
+        .menu-item.text-danger:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--light-bg);
+        }
+
+        /* Cards & Stats */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: none;
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-primary);
+            opacity: 0.05;
+            border-radius: 0 0 0 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .stat-card:nth-child(2) .icon-box {
+            background: var(--gradient-success);
+        }
+
+        .stat-card:nth-child(3) .icon-box {
+            background: var(--gradient-warning);
+        }
+
+        /* Page Titles */
+        .page-section h4 {
+            color: var(--text-color);
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .page-section h4::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        /* Forms */
+        .form-control, .form-select {
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid #e1e5eb;
+            background-color: white;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Buttons */
+        .btn-custom {
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            color: white;
+            box-shadow: 0 12px 25px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-custom:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        /* Table Styling */
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(67, 97, 238, 0.05);
+            --bs-table-hover-bg: rgba(67, 97, 238, 0.08);
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+            position: relative;
+        }
+
+        .table thead th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .table tbody td {
+            padding: 15px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-hover tbody tr:hover {
+            background: rgba(67, 97, 238, 0.05);
+            transform: scale(1.002);
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+        }
+
+        .bg-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%) !important;
+        }
+
+        /* Filter Card */
+        .card.bg-light {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+            border: 1px solid rgba(67, 97, 238, 0.1);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+                box-shadow: none;
+            }
+            .sidebar.active {
+                margin-left: 0;
+                box-shadow: 5px 0 25px rgba(0, 0, 0, 0.2);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            .mobile-toggle {
+                display: block !important;
+                background: var(--gradient-primary);
+                color: white;
+                border: none;
+                padding: 12px 15px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--gradient-primary);
+            border: none;
+            padding: 12px 15px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+            transition: all 0.3s;
+        }
+
+        .mobile-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.95) 0%, rgba(58, 12, 163, 0.95) 100%);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #loading-overlay .spinner-border {
+            width: 4rem;
+            height: 4rem;
+            border-width: 4px;
+        }
+
+        #loading-overlay h5 {
+            color: white;
+            margin-top: 20px;
+            font-weight: 500;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            padding: 20px 0;
+            border-top: 1px solid #eef2f7;
+            margin-top: 40px;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* SweetAlert Customization */
+        .swal2-popup {
+            border-radius: 20px !important;
+            font-family: 'Sarabun', sans-serif !important;
+        }
+
+        .swal2-confirm {
+            background: var(--gradient-primary) !important;
+            border-radius: 10px !important;
+            padding: 10px 25px !important;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+        }
+
+        /* Print Layout (ปรับปรุงเล็กน้อย) */
+        @media print {
+            .sidebar, .mobile-toggle, .no-print, #app-wrapper, #login-screen, #loading-overlay, footer {
+                display: none !important;
+            }
+            
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+                font-size: 12pt;
+            }
+            
+            .print-area {
+                display: block !important;
+                width: 100%;
+            }
+            
+            .print-page {
+                padding: 40px;
+                min-height: 100vh;
+                position: relative;
+                page-break-inside: avoid;
+            }
+            
+            .page-break {
+                page-break-after: always;
+                display: block;
+                height: 0;
+            }
+            
+            .signature-section {
+                margin-top: 60px;
+                display: flex;
+                justify-content: space-between;
+                page-break-inside: avoid;
+            }
+            
+            .evidence-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin-top: 15px;
+            }
+            
+            .evidence-grid img {
+                width: 100%;
+                max-height: 180px;
+                object-fit: contain;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            
+            table {
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            
+            table, th, td {
+                border: 1px solid #000 !important;
+            }
+            
+            th {
+                background: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+
+        /* Additional Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-section {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* File Upload Customization */
+        input[type="file"]::-webkit-file-upload-button {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-right: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        input[type="file"]::-webkit-file-upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        /* Pagination */
+        .pagination .page-link {
+            color: var(--primary-color);
+            border: 1px solid #e1e5eb;
+            margin: 0 3px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .pagination .page-link:hover {
+            background: rgba(67, 97, 238, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--gradient-primary);
+            border-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner-border text-white mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h5 class="text-white fw-bold">กำลังโหลดข้อมูล...</h5>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-card text-center">
+            <div class="icon-box mx-auto mb-4" style="width: 70px; height: 70px;">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3 class="fw-bold mb-4" style="color: var(--primary-color);">ระบบรายงานการสอน</h3>
+            <form id="login-form">
+                <div class="mb-3 text-start">
+                    <label class="form-label text-muted">ชื่อผู้ใช้งาน</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-4 text-start">
+                    <label class="form-label text-muted">รหัสผ่าน</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-custom w-100">เข้าสู่ระบบ</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Wrapper -->
+    <div id="app-wrapper" style="display: none;">
+        
+        <!-- Mobile Toggle -->
+        <button class="mobile-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h5 class="fw-bold text-white m-0" id="school-name-display">Online Report</h5>
+                <small class="text-white" id="user-display">Teacher</small>
+            </div>
+            <div class="sidebar-menu">
+                <a class="menu-item active" onclick="showPage('dashboard')"><i class="fas fa-chart-pie"></i> แดชบอร์ด</a>
+                <a class="menu-item" onclick="showPage('report-form')"><i class="fas fa-plus-circle"></i> บันทึกรายงาน</a>
+                <a class="menu-item" onclick="showPage('history')"><i class="fas fa-history"></i> ประวัติ/ค้นหา</a>
+                <a class="menu-item" onclick="showPage('teacher-summary')"><i class="fas fa-table"></i> สรุปภาพรวม</a>
+                <a class="menu-item admin-only" style="display:none" onclick="showPage('user-manage')"><i class="fas fa-users-cog"></i> จัดการผู้ใช้</a>
+                <a class="menu-item admin-only" style="display:none" onclick="showPage('settings')"><i class="fas fa-cogs"></i> ตั้งค่าระบบ</a>
+                <div class="border-top my-3" style="border-color: rgba(255,255,255,0.1) !important;"></div>
+                <a class="menu-item text-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            
+            <div style="flex: 1;">
+                <!-- Dashboard -->
+                <div id="page-dashboard" class="page-section">
+                    <h4 class="fw-bold mb-4">ภาพรวมการจัดการเรียนการสอน</h4>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="icon-box">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <h6 class="text-muted">รายงานทั้งหมด</h6>
+                                <h3 class="fw-bold mb-0" id="stat-total">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="icon-box" style="background: var(--gradient-success);">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                <h6 class="text-muted">สอนแบบ Online/Live</h6>
+                                <h3 class="fw-bold mb-0" id="stat-online">0</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="icon-box" style="background: var(--gradient-warning);">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <h6 class="text-muted">สอนแบบ On-Demand</h6>
+                                <h3 class="fw-bold mb-0" id="stat-demand">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-5">
+                            <div class="stat-card">
+                                <h6 class="fw-bold mb-3">สัดส่วนรูปแบบการสอน</h6>
+                                <canvas id="chartMethod"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="stat-card">
+                                <h6 class="fw-bold mb-3">สถิติการส่งรายงาน (Top 10)</h6>
+                                <canvas id="chartTeacher"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Form -->
+                <div id="page-report-form" class="page-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold">บันทึกรายงานการสอน</h4>
+                        <button class="btn btn-secondary btn-sm" onclick="resetForm()">ล้างค่า</button>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+                        <form id="reportForm" onsubmit="submitReport(event)">
+                            <input type="hidden" id="reportId" value="">
+                            <input type="hidden" id="editEvidenceUrl" value="">
+
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">วันที่สอน</label>
+                                    <input type="date" class="form-control" id="reportDate" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">เวลา/คาบที่</label>
+                                    <input type="text" class="form-control" id="reportTime" placeholder="เช่น 08.30-09.30" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">ภาคเรียน/ปีการศึกษา</label>
+                                    <input type="text" class="form-control" id="reportTerm" placeholder="เช่น 1/2567" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">กลุ่มสาระการเรียนรู้</label>
+                                    <select class="form-select" id="reportDepartment" required>
+                                        <option value="">เลือกกลุ่มสาระ...</option>
+                                        <!-- Options generated by JS -->
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">วิชา</label>
+                                    <input type="text" class="form-control" id="reportSubject" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">รหัสวิชา</label>
+                                    <input type="text" class="form-control" id="reportCode" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">ระดับชั้น</label>
+                                    <input type="text" class="form-control" id="reportClass" placeholder="เช่น ม.1/1" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">รูปแบบการสอน</label>
+                                    <select class="form-select" id="reportMethod" required>
+                                        <option value="Online">Online (Live สด)</option>
+                                        <option value="On-Demand">On-Demand (คลิปวิดีโอ)</option>
+                                        <option value="On-Hand">On-Hand (ใบงาน)</option>
+                                        <option value="On-Site">On-Site (ที่โรงเรียน)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">ลิงก์แผนการสอน/สื่อ (ถ้ามี)</label>
+                                    <input type="url" class="form-control" id="reportPlanLink">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">กิจกรรมการเรียนการสอน (โดยย่อ)</label>
+                                    <textarea class="form-control" id="reportActivity" rows="3" required></textarea>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">การวัดและประเมินผล</label>
+                                    <textarea class="form-control" id="reportAssessment" rows="2"></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">ปัญหา/อุปสรรค</label>
+                                    <textarea class="form-control" id="reportProblems" rows="2"></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">ข้อเสนอแนะ/แนวทางแก้ไข</label>
+                                    <textarea class="form-control" id="reportSuggestions" rows="2"></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">รูปภาพหลักฐาน (2-4 รูป)</label>
+                                    <input type="file" class="form-control" id="reportEvidence" accept="image/*" multiple>
+                                    <small class="text-muted" id="currentFileText"></small>
+                                    <div class="form-text text-danger">* กรุณาเลือกรูปภาพพร้อมกัน 2-4 รูป</div>
+                                </div>
+
+                                <div class="col-12 text-end mt-4">
+                                    <button type="submit" class="btn btn-custom px-5">บันทึกรายงาน</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- History Page -->
+                <div id="page-history" class="page-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold">ประวัติรายงานการสอน</h4>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card border-0 shadow-sm p-3 mb-4 bg-light">
+                        <h6 class="text-muted mb-2"><i class="fas fa-filter"></i> ตัวเลือกการกรองและพิมพ์</h6>
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <select class="form-select" id="filterDept" onchange="filterReports()">
+                                    <option value="">ทุกกลุ่มสาระฯ</option>
+                                    <!-- Populate by JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="filterTeacher" onchange="filterReports()">
+                                    <option value="">ครูทุกคน</option>
+                                    <!-- Populate by JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control" id="searchInput" placeholder="ค้นหา..." onkeyup="filterReports()">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary flex-grow-1" onclick="printBatch()">
+                                        <i class="fas fa-print"></i> พิมพ์รายงาน
+                                    </button>
+                                    <button class="btn btn-info text-white flex-grow-1" onclick="printSummary()">
+                                        <i class="fas fa-list"></i> พิมพ์สรุป
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="loadReports()">
+                                        <i class="fas fa-sync"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>วิชา/รหัส</th>
+                                        <th>ครูผู้สอน</th>
+                                        <th>สถานะ</th>
+                                        <th class="text-end no-print">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <!-- JS will populate this -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 border-top text-center" id="paginationControls">
+                            <!-- Pagination -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Summary Page -->
+                <div id="page-teacher-summary" class="page-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold">สรุปภาพรวมการจัดการเรียนการสอนรายบุคคล</h4>
+                        <button class="btn btn-secondary no-print" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์หน้านี้</button>
+                    </div>
+                    
+                    <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+                         <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="teacherSummaryTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th rowspan="2" class="align-middle text-center" style="width: 50px;">ที่</th>
+                                        <th rowspan="2" class="align-middle text-center">ชื่อ-สกุล</th>
+                                        <th rowspan="2" class="align-middle text-center">กลุ่มสาระฯ</th>
+                                        <th colspan="4" class="text-center">รูปแบบการสอน (ครั้ง)</th>
+                                        <th rowspan="2" class="align-middle text-center">รวมทั้งหมด</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center small">Online</th>
+                                        <th class="text-center small">On-Demand</th>
+                                        <th class="text-center small">On-Hand</th>
+                                        <th class="text-center small">On-Site</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacherSummaryBody"></tbody>
+                            </table>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Settings (Admin) -->
+                <div id="page-settings" class="page-section" style="display: none;">
+                    <h4 class="fw-bold mb-4">ตั้งค่าระบบ (Admin)</h4>
+                    <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+                        <form onsubmit="saveSettings(event)">
+                            <div class="mb-3">
+                                <label class="form-label">ชื่อโรงเรียน</label>
+                                <input type="text" class="form-control" id="setSchoolName">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">ชื่อผู้อำนวยการ (สำหรับลายเซ็น)</label>
+                                <input type="text" class="form-control" id="setDirectorName">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">รายชื่อกลุ่มสาระฯ (คั่นด้วยเครื่องหมายจุลภาค ,)</label>
+                                <textarea class="form-control" id="setDepartments" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-custom">บันทึกการตั้งค่า</button>
+                        </form>
+                        
+                        <hr class="my-4">
+                        <h5 class="fw-bold text-danger">จัดการฐานข้อมูล</h5>
+                        <p class="text-muted small">กดปุ่มนี้เฉพาะเมื่อเริ่มต้นระบบครั้งแรก หรือต้องการสร้าง Sheet ใหม่ที่หายไป</p>
+                        <button type="button" class="btn btn-outline-danger" onclick="setupDatabase()">
+                            <i class="fas fa-database"></i> สร้าง/ซ่อมแซมฐานข้อมูล
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- User Management (Admin) -->
+                <div id="page-user-manage" class="page-section" style="display: none;">
+                    <h4 class="fw-bold mb-4">จัดการผู้ใช้งาน</h4>
+                    <div class="card border-0 shadow-sm p-4" style="border-radius: 16px;">
+                        <div class="mb-3 text-end">
+                            <button class="btn btn-sm btn-primary" onclick="openAddUserModal()"><i class="fas fa-plus"></i> เพิ่มผู้ใช้</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead><tr><th>Username</th><th>ชื่อ-สกุล</th><th>Role</th><th>จัดการ</th></tr></thead>
+                                <tbody id="userTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center mt-5 mb-3 text-muted small no-print">
+                Copyright &copy; 2025 ระบบรายงานการสอนออนไลน์ | By ครูเปิงมางfc
+            </footer>
+
+        </div>
+    </div>
+
+    <!-- Print Area -->
+    <div id="print-area" class="print-area">
+        <!-- JS will populate print content here -->
+    </div>
+
+    <script>
+        // CONFIG
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyJ9OqqdlL1I0ivm8rkfSh17ktN74yquCK-5DB7QjkYvlYx1y7iEDI6wnY3g8-hGY6bAQ/exec';
+        
+        // STATE
+        let currentUser = null;
+        let reportsData = [];
+        let currentFilteredData = []; // Store current view
+        let systemSettings = {};
+        let allUsers = [];
+        
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+           // check login session logic if needed, for now start at login
+        });
+
+        // --- AUTHENTICATION ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            
+            showLoading(true);
+            try {
+                const res = await apiCall('login', { username: u, password: p });
+                if (res.success) {
+                    currentUser = res.user;
+                    initApp();
+                } else {
+                    Swal.fire('Login Failed', res.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Cannot connect to server', 'error');
+            }
+            showLoading(false);
+        });
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('app-wrapper').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('login-form').reset();
+        }
+
+        async function initApp() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'block';
+            
+            // UI Setup
+            document.getElementById('user-display').innerText = `${currentUser.name} (${currentUser.role})`;
+            
+            // Show/Hide Admin Menus
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+            });
+
+            // Load Settings First
+            await fetchSettings();
+            
+            // Populate Department Dropdown for Report Form
+            const deptSelect = document.getElementById('reportDepartment');
+            deptSelect.innerHTML = '<option value="">เลือกกลุ่มสาระ...</option>';
+            if(systemSettings.departments) {
+                systemSettings.departments.split(',').forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.trim();
+                    opt.text = d.trim();
+                    deptSelect.appendChild(opt);
+                });
+            }
+            
+            document.getElementById('school-name-display').innerText = systemSettings.schoolName || 'Online Report System';
+
+            showPage('dashboard');
+        }
+
+        // --- NAVIGATION ---
+        async function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            
+            // Show target
+            document.getElementById(`page-${pageId}`).style.display = 'block';
+            
+            // Highlight active menu
+            document.querySelectorAll('.menu-item').forEach(el => {
+                if (el.getAttribute('onclick')?.includes(pageId)) {
+                    el.classList.add('active');
+                }
+            });
+
+            // Mobile toggle
+            if(window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+
+            // Page Load Logic
+            if(pageId === 'dashboard') loadDashboard();
+            if(pageId === 'history') loadReports();
+            if(pageId === 'user-manage') loadUsers();
+            if(pageId === 'settings') populateSettingsForm();
+            if(pageId === 'teacher-summary') {
+                if(reportsData.length === 0) {
+                    showLoading(true);
+                    await loadReports(); // Load data first if empty
+                    showLoading(false);
+                }
+                loadTeacherSummary();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // --- API HANDLER ---
+        async function apiCall(action, payload = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('data', JSON.stringify(payload));
+
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                body: formData
+            });
+            
+            return await response.json();
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // --- DASHBOARD ---
+        let chart1, chart2;
+        async function loadDashboard() {
+            showLoading(true);
+            const res = await apiCall('getDashboardData');
+            showLoading(false);
+            
+            if(!res.success) return;
+            
+            const data = res.data;
+            document.getElementById('stat-total').innerText = data.total;
+            document.getElementById('stat-online').innerText = data.online;
+            document.getElementById('stat-demand').innerText = data.demand;
+
+            // Chart 1: Methods
+            const ctx1 = document.getElementById('chartMethod').getContext('2d');
+            if(chart1) chart1.destroy();
+            chart1 = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data.methods),
+                    datasets: [{
+                        data: Object.values(data.methods),
+                        backgroundColor: ['#4361ee', '#4cc9f0', '#ffd166', '#06d6a0'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // Chart 2: Teachers
+            const ctx2 = document.getElementById('chartTeacher').getContext('2d');
+            if(chart2) chart2.destroy();
+            chart2 = new Chart(ctx2, {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: data.topTeachers.map(t => t.name),
+                    datasets: [{
+                        label: 'จำนวนรายงาน',
+                        data: data.topTeachers.map(t => t.count),
+                        backgroundColor: 'rgba(67, 97, 238, 0.8)',
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- TEACHER SUMMARY ---
+        function loadTeacherSummary() {
+            const summary = {}; 
+
+            reportsData.forEach(r => {
+                const name = r.teacherName || 'ไม่ระบุ';
+                if (!summary[name]) {
+                    summary[name] = {
+                        name: name,
+                        dept: r.department || '-',
+                        online: 0, demand: 0, hand: 0, site: 0, total: 0
+                    };
+                }
+                
+                if (r.method === 'Online') summary[name].online++;
+                else if (r.method === 'On-Demand') summary[name].demand++;
+                else if (r.method === 'On-Hand') summary[name].hand++;
+                else if (r.method === 'On-Site') summary[name].site++;
+                
+                summary[name].total++;
+            });
+
+            const summaryArray = Object.values(summary).sort((a,b) => b.total - a.total);
+
+            const tbody = document.getElementById('teacherSummaryBody');
+            tbody.innerHTML = '';
+            
+            if (summaryArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">ไม่มีข้อมูล</td></tr>';
+                return;
+            }
+
+            summaryArray.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center">${index + 1}</td>
+                    <td>${item.name}</td>
+                    <td>${item.dept}</td>
+                    <td class="text-center">${item.online}</td>
+                    <td class="text-center">${item.demand}</td>
+                    <td class="text-center">${item.hand}</td>
+                    <td class="text-center">${item.site}</td>
+                    <td class="text-center fw-bold" style="background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);">${item.total}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- REPORT CRUD ---
+        async function submitReport(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('reportEvidence');
+            let filesArray = [];
+
+            // ตรวจสอบจำนวนไฟล์
+            if (fileInput.files.length > 0) {
+                if (fileInput.files.length < 2 || fileInput.files.length > 4) {
+                    Swal.fire('จำนวนรูปภาพไม่ถูกต้อง', 'กรุณาอัปโหลดรูปภาพ 2-4 รูป', 'warning');
+                    return;
+                }
+
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const file = fileInput.files[i];
+                    if (file.size > 4 * 1024 * 1024) {
+                        Swal.fire('ไฟล์ใหญ่เกินไป', `รูปภาพ ${file.name} มีขนาดใหญ่เกิน 4MB`, 'warning');
+                        return;
+                    }
+                    const base64 = await toBase64(file);
+                    filesArray.push({
+                        name: file.name,
+                        mime: file.type,
+                        base64: base64
+                    });
+                }
+            }
+
+            const payload = {
+                id: document.getElementById('reportId').value,
+                username: currentUser.username,
+                teacherName: currentUser.name,
+                date: document.getElementById('reportDate').value,
+                timePeriod: document.getElementById('reportTime').value,
+                term: document.getElementById('reportTerm').value,
+                department: document.getElementById('reportDepartment').value,
+                subject: document.getElementById('reportSubject').value,
+                code: document.getElementById('reportCode').value,
+                classLevel: document.getElementById('reportClass').value,
+                method: document.getElementById('reportMethod').value,
+                planLink: document.getElementById('reportPlanLink').value,
+                activity: document.getElementById('reportActivity').value,
+                assessment: document.getElementById('reportAssessment').value,
+                problems: document.getElementById('reportProblems').value,
+                suggestions: document.getElementById('reportSuggestions').value,
+                evidenceFiles: filesArray, // Send Array of files
+                existingEvidence: document.getElementById('editEvidenceUrl').value
+            };
+
+            showLoading(true);
+            const res = await apiCall('saveReport', payload);
+            showLoading(false);
+
+            if (res.success) {
+                Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+                resetForm();
+                showPage('history');
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        }
+
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+        });
+
+        function resetForm() {
+            document.getElementById('reportForm').reset();
+            document.getElementById('reportId').value = '';
+            document.getElementById('editEvidenceUrl').value = '';
+            document.getElementById('currentFileText').innerText = '';
+        }
+
+        // --- HISTORY & MANAGEMENT ---
+        async function loadReports() {
+            // Fetch ALL data for filtering client-side
+            const res = await apiCall('getReports', { role: currentUser.role, username: currentUser.username });
+            
+            if(res.success) {
+                reportsData = res.data;
+                // Sort by Date Desc
+                reportsData.sort((a,b) => new Date(b.date) - new Date(a.date));
+                
+                populateFilters();
+                filterReports(); // Initial render
+            }
+        }
+        
+        function populateFilters() {
+            // Populate Departments Filter
+            const depts = [...new Set(reportsData.map(r => r.department).filter(d => d))];
+            const deptSelect = document.getElementById('filterDept');
+            // Keep first option
+            deptSelect.innerHTML = '<option value="">ทุกกลุ่มสาระฯ</option>';
+            depts.sort().forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.text = d;
+                deptSelect.appendChild(opt);
+            });
+
+            // Populate Teachers Filter
+            const teachers = [...new Set(reportsData.map(r => r.teacherName).filter(t => t))];
+            const teacherSelect = document.getElementById('filterTeacher');
+            teacherSelect.innerHTML = '<option value="">ครูทุกคน</option>';
+            teachers.sort().forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.text = t;
+                teacherSelect.appendChild(opt);
+            });
+        }
+
+        function filterReports() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterDept = document.getElementById('filterDept').value;
+            const filterTeacher = document.getElementById('filterTeacher').value;
+
+            currentFilteredData = reportsData.filter(r => {
+                const matchesSearch = 
+                    r.subject.toLowerCase().includes(searchTerm) || 
+                    r.teacherName.toLowerCase().includes(searchTerm) ||
+                    r.date.includes(searchTerm);
+                
+                const matchesDept = filterDept === "" || r.department === filterDept;
+                const matchesTeacher = filterTeacher === "" || r.teacherName === filterTeacher;
+
+                return matchesSearch && matchesDept && matchesTeacher;
+            });
+            
+            renderTable(currentFilteredData);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">ไม่พบข้อมูล</td></tr>';
+                return;
+            }
+
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                const isOwner = r.username === currentUser.username;
+                const isAdmin = currentUser.role === 'admin';
+                
+                let actions = `
+                    <button class="btn btn-sm btn-info text-white" onclick="viewReport('${r.id}')"><i class="fas fa-eye"></i></button>
+                `;
+
+                if (isOwner || isAdmin) {
+                    actions += `<button class="btn btn-sm btn-warning ms-1 text-white" onclick="editReport('${r.id}')"><i class="fas fa-edit"></i></button>`;
+                }
+                
+                if (isOwner) {
+                     actions += `<button class="btn btn-sm btn-danger ms-1" onclick="deleteReport('${r.id}')"><i class="fas fa-trash"></i></button>`;
+                }
+
+                if (isAdmin && r.status !== 'Approved') {
+                    actions += `<button class="btn btn-sm btn-success ms-1" onclick="approveReport('${r.id}')"><i class="fas fa-check"></i></button>`;
+                }
+
+                // Per-row Print Button
+                if (r.status === 'Approved') {
+                    actions += `<button class="btn btn-sm btn-secondary ms-1" onclick="printReport('${r.id}')"><i class="fas fa-print"></i></button>`;
+                }
+
+                let statusBadge = r.status === 'Approved' 
+                    ? '<span class="badge bg-success">อนุมัติแล้ว</span>' 
+                    : '<span class="badge bg-secondary">รอตรวจสอบ</span>';
+
+                tr.innerHTML = `
+                    <td>${formatDate(r.date)}</td>
+                    <td>
+                        <div class="fw-bold">${r.subject}</div>
+                        <small class="text-muted">${r.code}</small>
+                    </td>
+                    <td>${r.teacherName}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end no-print">${actions}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- EDIT & DELETE ---
+        function editReport(id) {
+            const r = reportsData.find(item => item.id === id);
+            if(!r) return;
+
+            document.getElementById('reportId').value = r.id;
+            document.getElementById('reportDate').value = r.date.split('T')[0];
+            document.getElementById('reportTime').value = r.timePeriod || '';
+            document.getElementById('reportTerm').value = r.term;
+            document.getElementById('reportDepartment').value = r.department;
+            document.getElementById('reportSubject').value = r.subject;
+            document.getElementById('reportCode').value = r.code;
+            document.getElementById('reportClass').value = r.classLevel;
+            document.getElementById('reportMethod').value = r.method;
+            document.getElementById('reportPlanLink').value = r.planLink;
+            document.getElementById('reportActivity').value = r.activity;
+            document.getElementById('reportAssessment').value = r.assessment;
+            document.getElementById('reportProblems').value = r.problems;
+            document.getElementById('reportSuggestions').value = r.suggestions;
+            document.getElementById('editEvidenceUrl').value = r.evidenceUrl;
+            
+            if(r.evidenceUrl) {
+                const urls = r.evidenceUrl.split(',');
+                let links = urls.map((url, i) => `<a href="${url}" target="_blank">รูปที่ ${i+1}</a>`).join(', ');
+                document.getElementById('currentFileText').innerHTML = `ไฟล์เดิม: ${links} (หากไม่อัปโหลดใหม่จะใช้รูปเดิม)`;
+            } else {
+                document.getElementById('currentFileText').innerText = '';
+            }
+
+            showPage('report-form');
+        }
+
+        async function deleteReport(id) {
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการลบ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (confirm.isConfirmed) {
+                showLoading(true);
+                await apiCall('deleteReport', { id: id });
+                await loadReports();
+                showLoading(false);
+                Swal.fire('ลบเสร็จสิ้น', '', 'success');
+            }
+        }
+        
+        async function approveReport(id) {
+            const { value: comment } = await Swal.fire({
+                title: 'ความคิดเห็น (Admin)',
+                input: 'text',
+                showCancelButton: true
+            });
+
+            if (comment !== undefined) { 
+                showLoading(true);
+                await apiCall('approveReport', { id: id, comment: comment });
+                await loadReports();
+                showLoading(false);
+            }
+        }
+
+        // --- VIEW & PRINT ---
+        function viewReport(id) {
+            const r = reportsData.find(item => item.id === id);
+            
+            // Create images HTML
+            let imagesHtml = '';
+            if (r.evidenceUrl) {
+                const urls = r.evidenceUrl.split(',');
+                urls.forEach(url => {
+                    imagesHtml += `<img src="${url}" style="max-width:100%; border-radius:10px; margin-top:10px; margin-bottom:5px;">`;
+                });
+            }
+
+            Swal.fire({
+                title: r.subject,
+                html: `
+                    <div class="text-start">
+                        <p><strong>ผู้สอน:</strong> ${r.teacherName}</p>
+                        <p><strong>กิจกรรม:</strong> ${r.activity}</p>
+                        <p><strong>Admin Comment:</strong> ${r.adminComment || '-'}</p>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            ${imagesHtml || '<p>ไม่มีรูปภาพ</p>'}
+                        </div>
+                    </div>
+                `,
+                width: 600
+            });
+        }
+
+        // GENERATE HTML FOR SINGLE REPORT (Helper)
+        function generateReportHTML(r) {
+             const d = new Date(r.date);
+             const dateStr = `${d.getDate()} / ${d.getMonth()+1} / ${d.getFullYear() + 543}`;
+             
+             // Process Images
+             let imagesGrid = '';
+             if (r.evidenceUrl) {
+                 const urls = r.evidenceUrl.split(',');
+                 imagesGrid = `<div class="evidence-grid">`;
+                 urls.forEach(url => {
+                     imagesGrid += `<img src="${url}">`;
+                 });
+                 imagesGrid += `</div>`;
+             } else {
+                 imagesGrid = 'ไม่มีรูปภาพ';
+             }
+             
+             return `
+                <div class="print-page">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="https://img5.pic.in.th/file/secure-sv1/unnamed55678ffaa3a68805.jpg" alt="Logo" style="height: 80px;">
+                        <h3 style="margin: 10px 0 5px 0; font-weight: bold;">${systemSettings.schoolName || 'โรงเรียน...'}</h3>
+                        <h4 style="margin: 0;">รายงานการจัดการเรียนการสอนออนไลน์</h4>
+                        <p style="margin: 5px 0;">ภาคเรียนที่ ${r.term}</p>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;" border="1">
+                        <tr>
+                            <td style="padding: 10px; width: 20%; font-weight: bold;">ชื่อผู้สอน</td>
+                            <td style="padding: 10px;">${r.teacherName}</td>
+                            <td style="padding: 10px; width: 20%; font-weight: bold;">กลุ่มสาระฯ</td>
+                            <td style="padding: 10px;">${r.department}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; font-weight: bold;">วันที่สอน</td>
+                            <td style="padding: 10px;">${dateStr}</td>
+                            <td style="padding: 10px; font-weight: bold;">เวลา/คาบ</td>
+                            <td style="padding: 10px;">${r.timePeriod || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; font-weight: bold;">วิชา (รหัส)</td>
+                            <td style="padding: 10px;">${r.subject} (${r.code})</td>
+                            <td style="padding: 10px; font-weight: bold;">ระดับชั้น</td>
+                            <td style="padding: 10px;">${r.classLevel}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; font-weight: bold;">รูปแบบ</td>
+                            <td style="padding: 10px;" colspan="3">${r.method}</td>
+                        </tr>
+                    </table>
+
+                    <div style="margin-bottom: 15px;">
+                        <strong>1. กิจกรรมการเรียนการสอน:</strong>
+                        <div style="border: 1px solid #000; padding: 10px; min-height: 80px;">${r.activity}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <strong>2. การวัดและประเมินผล:</strong>
+                        <div style="border: 1px solid #000; padding: 10px; min-height: 60px;">${r.assessment || '-'}</div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <strong>3. ปัญหา/ข้อเสนอแนะ:</strong>
+                        <div style="border: 1px solid #000; padding: 10px; min-height: 60px;">${r.problems} / ${r.suggestions}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>4. หลักฐานประกอบ (ภาพถ่าย):</strong>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">
+                             ${imagesGrid}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                         <strong>ความเห็นผู้บริหาร:</strong>
+                         <div style="border: 1px solid #000; padding: 10px; min-height: 50px;">
+                            ${r.adminComment || '-'}
+                         </div>
+                    </div>
+
+                    <div class="signature-section">
+                        <div style="text-align: center; width: 40%;">
+                            <br><br>
+                            .......................................................<br>
+                            (${r.teacherName})<br>
+                            ครูผู้สอน
+                        </div>
+                        <div style="text-align: center; width: 40%;">
+                            <br><br>
+                            .......................................................<br>
+                            (${systemSettings.directorName || 'ผู้อำนวยการ'})<br>
+                            ผู้อำนวยการโรงเรียน
+                        </div>
+                    </div>
+                </div>
+                <div class="page-break"></div>
+             `;
+        }
+        
+        // PRINT SUMMARY
+        function printSummary() {
+            if(currentFilteredData.length === 0) {
+                Swal.fire('ไม่มีข้อมูล', 'ไม่มีข้อมูลสำหรับพิมพ์สรุป', 'warning');
+                return;
+            }
+
+            const printDiv = document.getElementById('print-area');
+            const d = new Date();
+            const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+
+            // Calculate stats for this set
+            let stats = { Online:0, 'On-Demand':0, 'On-Hand':0, 'On-Site':0 };
+            currentFilteredData.forEach(r => {
+                if(stats[r.method] !== undefined) stats[r.method]++;
+            });
+
+            let html = `
+                <div class="print-page">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <img src="https://img5.pic.in.th/file/secure-sv1/unnamed55678ffaa3a68805.jpg" alt="Logo" style="height: 80px;">
+                        <h3 style="margin: 10px 0 5px 0; font-weight: bold;">${systemSettings.schoolName || 'โรงเรียน...'}</h3>
+                        <h4 style="margin: 5px 0;">สรุปรายงานการจัดการเรียนการสอนออนไลน์</h4>
+                        <p style="margin: 0;">ข้อมูล ณ วันที่ ${dateStr}</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+                        <strong>สรุปข้อมูล (${currentFilteredData.length} รายการ):</strong><br>
+                        Online: ${stats.Online} | On-Demand: ${stats['On-Demand']} | On-Hand: ${stats['On-Hand']} | On-Site: ${stats['On-Site']}
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12pt;" border="1">
+                        <thead>
+                            <tr style="background-color: #f0f0f0;">
+                                <th style="padding: 8px; text-align: center;">ว/ด/ป</th>
+                                <th style="padding: 8px; text-align: left;">วิชา (รหัส)</th>
+                                <th style="padding: 8px; text-align: left;">ครูผู้สอน</th>
+                                <th style="padding: 8px; text-align: center;">รูปแบบ</th>
+                                <th style="padding: 8px; text-align: center;">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            currentFilteredData.forEach(r => {
+                const rd = new Date(r.date);
+                const rdStr = `${rd.getDate()}/${rd.getMonth()+1}/${rd.getFullYear()+543}`;
+                html += `
+                    <tr>
+                        <td style="padding: 8px; text-align: center;">${rdStr}</td>
+                        <td style="padding: 8px;">${r.subject} (${r.code})<br><small>${r.classLevel}</small></td>
+                        <td style="padding: 8px;">${r.teacherName}</td>
+                        <td style="padding: 8px; text-align: center;">${r.method}</td>
+                        <td style="padding: 8px; text-align: center;">${r.status === 'Approved' ? 'อนุมัติ' : 'รอตรวจ'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="signature-section" style="margin-top: 50px;">
+                        <div style="text-align: center; width: 40%; margin-left: auto;">
+                            <br><br>
+                            .......................................................<br>
+                            (${systemSettings.directorName || 'ผู้อำนวยการ'})<br>
+                            ผู้อำนวยการโรงเรียน
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            printDiv.innerHTML = html;
+            setTimeout(() => window.print(), 500);
+        }
+
+        // PRINT SINGLE
+        function printReport(id) {
+            const r = reportsData.find(item => item.id === id);
+            const printDiv = document.getElementById('print-area');
+            printDiv.innerHTML = generateReportHTML(r);
+            setTimeout(() => window.print(), 500);
+        }
+        
+        // PRINT BATCH (FILTERED)
+        function printBatch() {
+            if(currentFilteredData.length === 0) {
+                Swal.fire('ไม่มีข้อมูล', 'กรุณาเลือกข้อมูลที่ต้องการพิมพ์', 'warning');
+                return;
+            }
+            
+            // Confirm if many records
+            if(currentFilteredData.length > 20) {
+                 if(!confirm(`คุณต้องการพิมพ์รายงานทั้งหมด ${currentFilteredData.length} ฉบับ ใช่หรือไม่?`)) return;
+            }
+
+            const printDiv = document.getElementById('print-area');
+            let allHtml = '';
+            
+            // Only print Approved? Or all displayed? Usually print approved is safer, but prompt says "All".
+            // Let's print what matches filter. Optional: filter only Approved.
+            const toPrint = currentFilteredData.filter(r => r.status === 'Approved');
+            
+            if(toPrint.length === 0) {
+                 Swal.fire('ไม่มีรายงานที่อนุมัติ', 'ระบบจะพิมพ์เฉพาะรายงานสถานะ "อนุมัติแล้ว" เท่านั้น', 'warning');
+                 return;
+            }
+
+            toPrint.forEach(r => {
+                allHtml += generateReportHTML(r);
+            });
+            
+            printDiv.innerHTML = allHtml;
+            setTimeout(() => window.print(), 500);
+        }
+
+        // --- ADMIN SETTINGS & USERS ---
+        async function fetchSettings() {
+            const res = await apiCall('getSettings');
+            if(res.success) {
+                systemSettings = res.data;
+            }
+        }
+        
+        function populateSettingsForm() {
+            document.getElementById('setSchoolName').value = systemSettings.schoolName || '';
+            document.getElementById('setDirectorName').value = systemSettings.directorName || '';
+            document.getElementById('setDepartments').value = systemSettings.departments || '';
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const payload = {
+                schoolName: document.getElementById('setSchoolName').value,
+                directorName: document.getElementById('setDirectorName').value,
+                departments: document.getElementById('setDepartments').value
+            };
+            showLoading(true);
+            await apiCall('saveSettings', payload);
+            await fetchSettings();
+            showLoading(false);
+            Swal.fire('บันทึกสำเร็จ', '', 'success');
+        }
+
+        async function setupDatabase() {
+            const confirm = await Swal.fire({
+                title: 'สร้างฐานข้อมูล?',
+                text: "ระบบจะสร้าง Sheet ที่ขาดหายไป (Users, Reports, Settings) และเพิ่ม Admin เริ่มต้นหากยังไม่มี",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (confirm.isConfirmed) {
+                showLoading(true);
+                const res = await apiCall('setupDatabase');
+                showLoading(false);
+                if (res.success) {
+                    Swal.fire('สำเร็จ', res.message, 'success');
+                } else {
+                    Swal.fire('Error', res.message, 'error');
+                }
+            }
+        }
+        
+        // --- ADMIN USER MANAGEMENT ---
+        async function loadUsers() {
+            showLoading(true);
+            const res = await apiCall('getUsers');
+            if(res.success) {
+                allUsers = res.data;
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = '';
+                allUsers.forEach(u => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${u.username}</td>
+                            <td>${u.name}</td>
+                            <td>${u.role}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser('${u.username}')">ลบ</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            showLoading(false);
+        }
+
+        async function openAddUserModal() {
+            const { value: formValues } = await Swal.fire({
+                title: 'เพิ่มผู้ใช้งาน',
+                html:
+                    '<input id="swal-user" class="swal2-input" placeholder="Username">' +
+                    '<input id="swal-pass" class="swal2-input" placeholder="Password">' +
+                    '<input id="swal-name" class="swal2-input" placeholder="ชื่อ-สกุล">' +
+                    '<select id="swal-role" class="swal2-select"><option value="teacher">Teacher</option><option value="admin">Admin</option></select>',
+                focusConfirm: false,
+                preConfirm: () => {
+                    return {
+                        username: document.getElementById('swal-user').value,
+                        password: document.getElementById('swal-pass').value,
+                        name: document.getElementById('swal-name').value,
+                        role: document.getElementById('swal-role').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                showLoading(true);
+                await apiCall('saveUser', formValues);
+                await loadUsers();
+                showLoading(false);
+            }
+        }
+
+        async function deleteUser(username) {
+            if(confirm('Delete user?')) {
+                await apiCall('deleteUser', { username });
+                loadUsers();
+            }
+        }
+
+        function formatDate(dateString) {
+            if(!dateString) return '-';
+            const d = new Date(dateString);
+            return d.toLocaleDateString('th-TH');
+        }
+
+    </script>
+</body>
+</html>
